@@ -1,21 +1,22 @@
 import { Component, createFactory } from "react";
 import { createPortal } from "react-dom";
-
+import PropTypes from "prop-types";
+import "./Modal.css";
 const modalRoot = document.querySelector("#modal-root");
 
 export default class Modal extends Component {
-  componentDidMount(){
-    window.addEventListener('keydown',e=>{
-      if(e.code==='Escape'){
-        this.props.onCloseModal()
+  componentDidMount() {
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Escape") {
+        this.props.onCloseModal();
       }
-    })
+    });
   }
-  HandleOverley=(e)=>{
-    if(e.target===e.currentTarget){
-      this.props.onCloseModal()
+  HandleOverley = (e) => {
+    if (e.target === e.currentTarget) {
+      this.props.onCloseModal();
     }
-  }
+  };
   render() {
     return createPortal(
       <div class="Overlay" onClick={this.HandleOverley}>
@@ -27,3 +28,7 @@ export default class Modal extends Component {
     );
   }
 }
+Modal.propTypes = {
+  onCloseModal: PropTypes.func,
+  link: PropTypes.string,
+};

@@ -5,6 +5,8 @@ import ImageGalleryItem from "../ImageGalleryItem";
 import Button from "../Button/";
 import Modal from "../Modal/";
 import { Link, animateScroll as scroll } from "react-scroll";
+import PropTypes from "prop-types";
+import "./ImageGallery.css";
 
 const imgApi = new ImgApi();
 export default class ImageGallery extends Component {
@@ -13,8 +15,8 @@ export default class ImageGallery extends Component {
     values: "",
     error: "",
     page: 1,
-    showModal:false,
-    urlModal:''
+    showModal: false,
+    urlModal: "",
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -66,29 +68,31 @@ export default class ImageGallery extends Component {
   };
   showModal = (e) => {
     this.setState((prevState) => ({
-      showModal: !prevState.showModal
+      showModal: !prevState.showModal,
     }));
-    this.setState({urlModal:e.target.dataset.src})
-  }
-  onCloseModal=()=>{
+    this.setState({ urlModal: e.target.dataset.src });
+  };
+  onCloseModal = () => {
     this.setState({
-      showModal: false});
-  }
+      showModal: false,
+    });
+  };
   render() {
     const { status, values, error, urlModal } = this.state;
     if (status === "idle") {
-      return <ul className="gallery">ЖДУ</ul>;
+      return <ul className="gallery"></ul>;
     }
     if (status === "pending") {
       return (
         <div>
+          {values && (
+            <ul className="ImageGallery ">
+              {values.map((value, index) => {
+                return <ImageGalleryItem key={index} value={value} />;
+              })}
+            </ul>
+          )}
           <Loader className="spiner" type="Oval" color="black" />
-          {values && <ul className="ImageGallery ">
-            {values.map((value, index) => {
-              return <ImageGalleryItem key={index} value={value} />;
-            })}
-          </ul>}
-          
         </div>
       );
     }
@@ -100,14 +104,19 @@ export default class ImageGallery extends Component {
         <div>
           <ul className="ImageGallery ">
             {values.map((value, index) => {
-              
-              return <ImageGalleryItem onShowModal={this.showModal} key={index} value={value}  /> ;
+              return (
+                <ImageGalleryItem
+                  onShowModal={this.showModal}
+                  key={index}
+                  value={value}
+                />
+              );
             })}
           </ul>
 
           {values.length >= 12 && (
             <div className="center">
-              <Button  onLoadMore={this.loadMore} message={"Load more"} />
+              <Button onLoadMore={this.loadMore} message={"Load more"} />
             </div>
           )}
           {values.length >= 24 && scroll.scrollToBottom()}
@@ -119,9 +128,15 @@ export default class ImageGallery extends Component {
             offset={-70}
             duration={500}
           ></Link>
-          {this.state.showModal&&<Modal link={urlModal} onCloseModal={this.onCloseModal}/>}
+          {this.state.showModal && (
+            <Modal link={urlModal} onCloseModal={this.onCloseModal} />
+          )}
         </div>
       );
     }
   }
 }
+
+ImageGallery.propTypes = {
+  searchQuery: PropTypes.string,
+};
