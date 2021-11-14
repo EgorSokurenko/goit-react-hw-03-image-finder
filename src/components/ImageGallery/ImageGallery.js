@@ -1,4 +1,5 @@
 import ImgApi from "../../api/searchApi";
+import { toast } from "react-toastify";
 import { Component } from "react";
 import Loader from "react-loader-spinner";
 import ImageGalleryItem from "../ImageGalleryItem";
@@ -42,7 +43,7 @@ export default class ImageGallery extends Component {
             console.log(page);
             return res.data.hits;
           }
-          return Promise.reject(new Error(`Nothing find ${nextSearch}`));
+          return Promise.reject(new Error(`Nothing find to ${nextSearch}`));
         })
         .then((result) =>
           this.setState((prevState) => {
@@ -97,7 +98,7 @@ export default class ImageGallery extends Component {
       );
     }
     if (status === "rejected") {
-      return <h1>ops... {error.message}</h1>;
+      return <h2 className='message'>Ops... {error.message} :(</h2>
     }
     if (status === "resolved") {
       return (
