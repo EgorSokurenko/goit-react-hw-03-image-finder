@@ -26,7 +26,7 @@ export default class ImageGallery extends Component {
     const { page } = this.state;
 
     if (prevSearch !== nextSearch) {
-      this.setState({ status: "pending" });
+      this.setState({ status: "pending", page: 1 });
       this.loadImage(nextSearch, 1);
     }
     if (prevState.page !== this.state.page) {
@@ -67,11 +67,11 @@ export default class ImageGallery extends Component {
       page: prevState.page + 1,
     }));
   };
-  showModal = (e) => {
+  showModal = (src) => {
     this.setState((prevState) => ({
       showModal: !prevState.showModal,
     }));
-    this.setState({ urlModal: e.target.dataset.src });
+    this.setState({ urlModal: src });
   };
   onCloseModal = () => {
     this.setState({
@@ -98,7 +98,7 @@ export default class ImageGallery extends Component {
       );
     }
     if (status === "rejected") {
-      return <h2 className='message'>Ops... {error.message} :(</h2>
+      return <h2 className="message">Ops... {error.message} :(</h2>;
     }
     if (status === "resolved") {
       return (
