@@ -6,9 +6,11 @@ const modalRoot = document.querySelector("#modal-root");
 
 export default class Modal extends Component {
   componentDidMount() {
+    document.querySelector('body').classList.add('modal-open')
     window.addEventListener("keydown", this.HandelKeyDown);
   }
   componentWillUnmount() {
+    document.querySelector('body').classList.remove('modal-open')
     window.removeEventListener("keydown", this.HandelKeyDown);
   }
   HandelKeyDown = (e) => {
