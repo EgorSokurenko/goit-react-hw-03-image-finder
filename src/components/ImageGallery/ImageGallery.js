@@ -1,6 +1,6 @@
 import ImgApi from "../../api/searchApi";
 import { toast } from "react-toastify";
-import { Component } from "react";
+import { useState, useEffect, useRef } from "react";
 import Loader from "react-loader-spinner";
 import ImageGalleryItem from "../ImageGalleryItem";
 import Button from "../Button/";
@@ -8,33 +8,42 @@ import Modal from "../Modal/";
 import { Link, animateScroll as scroll } from "react-scroll";
 import PropTypes from "prop-types";
 import "./ImageGallery.css";
+import { IoEllipseSharp } from "react-icons/io5";
 
+const Status = {
+  IDLE:'idle',
+  PENDING:'pending',
+  RESOLVED:'resolved',
+  REJECTED:'rejected',
+}
 const imgApi = new ImgApi();
-export default class ImageGallery extends Component {
-  state = {
-    status: "idle",
-    values: "",
-    error: "",
-    page: 1,
-    showModal: false,
-    urlModal: "",
-  };
-
-  componentDidUpdate(prevProps, prevState) {
-    const prevSearch = prevProps.searchQuery;
-    const nextSearch = this.props.searchQuery;
-    const { page } = this.state;
-
-    if (prevSearch !== nextSearch) {
-      this.setState({ status: "pending", page: 1 });
-      this.loadImage(nextSearch, 1);
+export default function ImageGallery ({searchQuery}) {
+  const [status, setStatus] = useState(Status.IDLE)
+  const [values, setValues] = useState('')
+  const [error, setError] = useState('')
+  const [page, setPage] = useState(1)
+  const [modal, setShowModal] = useState(false)
+  const [urlModal, setUrlModal] = useState('')
+  const search = useRef(null)
+  useEffect(()=>{
+    
+    if(!searchQuery){
+      return
     }
-    if (prevState.page !== this.state.page) {
-      this.setState({ status: "pending" });
-      this.loadImage(nextSearch, page);
+    if(searchQuery!==search.current){
+      setValues([])
+      setPage(1)
+      setStatus(Status.PENDING)
+      loadImage(searchQuery,1)
+    }else{
+      setUrlModal('')
+      setStatus(Status.PENDING)
+      loadImage(searchQuery, page);
     }
-  }
-  loadImage = (nextSearch, page) => {
+    search.current = searchQuery
+    
+  },[searchQuery, page])
+  const loadImage = (nextSearch, page) => {
     setTimeout(() => {
       imgApi
         .fetchImg(nextSearch, page)
@@ -45,82 +54,62 @@ export default class ImageGallery extends Component {
           }
           return Promise.reject(new Error(`Nothing find to ${nextSearch}`));
         })
-        .then((result) =>
-          this.setState((prevState) => {
-            if (page !== 1) {
-              return {
-                values: [...prevState.values, ...result],
-                status: "resolved",
-              };
-            }
-            return {
-              values: [...result],
-              status: "resolved",
-            };
-          })
+        .then((result) =>{
+          if(page!==1){
+            setValues(s=>[...s,...result])
+            setStatus(Status.RESOLVED)
+          }else{
+            setValues(result)
+            setStatus(Status.RESOLVED)
+          }
+          
+        }
         )
-        .catch((error) => this.setState({ error, status: "rejected" }));
+        .catch((error) => {
+          setError(error) 
+          setStatus(Status.REJECTED)});
     }, 1000);
   };
-  loadMore = () => {
-    this.setState((prevState) => ({
-      page: prevState.page + 1,
-    }));
+  const loadMore = () => {
+    setPage(s=>s+1)
   };
-  showModal = (src) => {
-    this.setState((prevState) => ({
-      showModal: !prevState.showModal,
-    }));
-    this.setState({ urlModal: src });
+  const showModal = (src) => {
+    setShowModal(!modal)
+    setUrlModal(src)
   };
-  onCloseModal = () => {
-    this.setState({
-      showModal: false,
-    });
+  const onCloseModal = () => {
+    setShowModal(false)
   };
-  render() {
-    const { status, values, error, urlModal } = this.state;
-    if (status === "idle") {
-      return <ul className="gallery"></ul>;
+  
+    if (status === Status.IDLE) {
+      return <ul></ul>;
     }
-    if (status === "pending") {
-      return (
-        <div>
-          {values && (
-            <ul className="ImageGallery ">
-              {values.map((value, index) => {
-                return <ImageGalleryItem key={index} value={value} />;
-              })}
-            </ul>
-          )}
-          <Loader className="spiner" type="Oval" color="black" />
-        </div>
-      );
-    }
-    if (status === "rejected") {
+    
+    if (status === Status.REJECTED) {
       return <h2 className="message">Ops... {error.message} :(</h2>;
     }
-    if (status === "resolved") {
+    if (status === Status.RESOLVED||status === Status.PENDING) {
       return (
         <div>
-          <ul className="ImageGallery ">
+          <ul className="ImageGallery"  >
             {values.map((value, index) => {
               return (
                 <ImageGalleryItem
-                  onShowModal={this.showModal}
+                  onShowModal={showModal}
                   key={index}
                   value={value}
                 />
               );
+              
             })}
+            
           </ul>
-
-          {values.length >= 12 && (
-            <div className="center">
-              <Button onLoadMore={this.loadMore} message={"Load more"} />
+          {status===Status.PENDING?<Loader className="spiner" type="Oval" color="black" />:values.length >= 12 && (
+            <div className="center" to='gallery'>
+              <Button onLoadMore={loadMore} message={"Load more"} />
             </div>
           )}
-          {values.length >= 24 && scroll.scrollToBottom()}
+          {urlModal===''&& values.length >= 24 && scroll.scrollMore(400)}
           <Link
             activeClass=""
             to="gallery"
@@ -128,14 +117,13 @@ export default class ImageGallery extends Component {
             smooth={true}
             offset={-70}
             duration={500}
-          ></Link>
-          {this.state.showModal && (
-            <Modal link={urlModal} onCloseModal={this.onCloseModal} />
+          />
+          {modal && (
+            <Modal link={urlModal} onCloseModal={onCloseModal} />
           )}
         </div>
       );
     }
-  }
 }
 
 ImageGallery.propTypes = {

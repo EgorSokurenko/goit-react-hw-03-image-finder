@@ -1,35 +1,32 @@
-import { Component } from "react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import "./Searchbar.css";
 import { AiOutlineSearch } from "react-icons/all";
 
-export default class Searchbar extends Component {
-  state = {
-    search: "",
+export default function Searchbar ({onSubmit}) {
+  const [search, setSearch]=useState('')
+  const HandleNameChange = (e) => {
+    setSearch(e.target.value)
   };
-  HandleNameChange = (e) => {
-    this.setState({ search: e.target.value });
-  };
-  HandleSubmit = (e) => {
+  const HandleSubmit = (e) => {
     e.preventDefault();
-    if (this.state.search.trim() === "") {
+    if (search.trim() === "") {
       toast.error("Entry something pls :)", {});
     }
-    this.props.onSubmit(this.state.search);
-    this.setState({ search: "" });
+    onSubmit(search);
+    setSearch('')
   };
-  render() {
     return (
       <header className="Searchbar">
-        <form onSubmit={this.HandleSubmit} className="SearchForm">
+        <form onSubmit={HandleSubmit} className="SearchForm">
           <button type="submit" className="SearchForm-button">
             <AiOutlineSearch fill="black" />
           </button>
 
           <input
-            onChange={this.HandleNameChange}
-            value={this.state.search}
+            onChange={HandleNameChange}
+            value={search}
             className="SearchForm-input"
             type="text"
             autoComplete="off"
@@ -40,7 +37,6 @@ export default class Searchbar extends Component {
       </header>
     );
   }
-}
 Searchbar.propTypes = {
   onSubmit: PropTypes.func,
 };
